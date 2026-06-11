@@ -18,7 +18,7 @@ const ACTIVITY_LINKS = {
 };
 
 // Componente del Juego Phaser
-function PhaserGame({ playerName, onHud, onGameOver }) {
+function PhaserGame({ playerName, personalRecord, onHud, onGameOver }) {
   const gameRef = useRef(null);
   
   // Guardar callbacks en refs para tener las referencias actualizadas sin forzar re-creación de Phaser
@@ -60,6 +60,7 @@ function PhaserGame({ playerName, onHud, onGameOver }) {
     // Iniciar la escena del juego pasándole proxies que llamen al ref actual
     game.scene.start('GameScene', {
       playerName: playerName,
+      personalRecord: personalRecord,
       onHud: (hudData) => onHudRef.current?.(hudData),
       onGameOver: (gameData) => onGameOverRef.current?.(gameData),
     });
@@ -125,14 +126,21 @@ function GameHud({ hud }) {
         </div>
         <div className="bg-black/80 backdrop-blur-md rounded-lg px-3 py-2 border border-binance-yellow/40 text-right font-bold">
           <div className="text-white font-black text-sm leading-none">{hud.bandera} {hud.ciudad}</div>
-          <div className="text-binance-lightYellow text-[10px] font-bold uppercase tracking-wide">{hud.estadio} · SEDE {hud.worldNumber}/{hud.totalWorlds}</div>
+          <div className="text-binance-lightYellow text-[10px] font-bold uppercase tracking-wide">
+            {hud.estadio} {hud.totalWorlds > 1 ? `· SEDE ${hud.worldNumber}/${hud.totalWorlds}` : ''}
+          </div>
         </div>
       </div>
 
       <div className="mt-3 w-full max-w-md mx-auto">
         <div className="flex justify-between items-end text-[11px] font-bold text-white/90 mb-1 px-1">
-          <span className="uppercase tracking-widest">Dominadas</span>
-          <span className="text-binance-yellow text-base leading-none">{hud.touches}<span className="text-white/70 text-xs">/{goal}</span> ⚽</span>
+          <span className="uppercase tracking-widest">
+            {hud.score > hud.goal ? '¡NUEVO RÉCORD! 🔥' : 'Récord a vencer'}
+          </span>
+          <span className="text-binance-yellow text-base leading-none">
+            {hud.touches}
+            {hud.score <= hud.goal && <span className="text-white/70 text-xs">/{hud.goal}</span>} ⚽
+          </span>
         </div>
         <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10">
           <div className="h-full bg-binance-yellow transition-all duration-150" style={{ width: `${touchPct}%` }} />
@@ -586,6 +594,7 @@ function DashboardView({ navigate }) {
           <PhaserGame
             key={playKey}
             playerName={usuario.buid}
+            personalRecord={usuario.puntos_cabeceos || 0}
             onHud={setHud}
             onGameOver={handleGameOver}
           />

@@ -18,6 +18,7 @@ export default class GameScene extends Phaser.Scene {
 
   init(data) {
     this.playerName = data.playerName;
+    this.personalRecord = data.personalRecord || 0;
     this.onHud = data.onHud;        // callback hacia React para el HUD
     this.onGameOver = data.onGameOver;
 
@@ -543,16 +544,20 @@ export default class GameScene extends Phaser.Scene {
     // PERFECT = el balón pega en el PIE (la sombra), hacia el lado que camina.
     // Cabeza/centro/cuerpo = NORMAL (igual rebota).
     // El margen de error se achica brutalmente por nivel y por dominada
-    const levelDiff = this.worldIndex;
-    const progress = Math.min(1, (this.style21 + 1) / TOUCHES_PER_LEVEL);
-    const currentPerfectWindow = Math.max(6, this.world.perfectWindow - (levelDiff * 8) - (progress * 10));
+    // Cada toque (perfect o normal) cuenta hacia los dominadas
+    this.totalHits++;
+    this.style21 += 1;
+    
+    // Dificultad basada directamente en los toques acumulados (totalHits)
+    const hits = this.totalHits;
+    
+    // El margen de error para el PERFECT se achica progresivamente toque a toque
+    // Comienza en 30px y baja 0.5px por toque, hasta un mínimo de 6px (súper preciso)
+    const currentPerfectWindow = Math.max(6, 30 - hits * 0.5);
     const isPerfect = Math.abs(ball.x - footX) < currentPerfectWindow;
     const hitX = ball.x;
     const hitY = ball.y;
 
-    // Cada toque (perfect o normal) cuenta hacia los 21 dominadas
-    this.totalHits++;
-    this.style21 += 1;
     this.doKick(facing, isPerfect);
 
     if (isPerfect) {
@@ -573,41 +578,41 @@ export default class GameScene extends Phaser.Scene {
     const multiplier = isFever ? this.perfectCombo : 1;
     this.score += (isPerfect ? 2 : 1) * multiplier;
 
-    // Dificultad CRECIENTE dentro del nivel: la gravedad sube en CADA dominada
-    const gravity = this.world.gravityBase * (1 + LEVEL_EASE * progress);
+    // Gravedad progresiva: aumenta linealmente con cada toque
+    // Comienza en 820 y sube 40 por cada toque (p. ej., toque 30 = 2020 de gravedad)
+    const gravity = 820 + hits * 40;
     ball.setGravityY(gravity);
 
-    // Rebote de ALTURA CONSTANTE por sede, vuelve a ser alto para aprovechar el espacio,
-    // ya que la verdadera dificultad ahora será la velocidad HORIZONTAL.
+    // Altura del rebote: disminuye levemente para forzar caídas más rápidas
     const totalG = this.physics.world.gravity.y + gravity;
-    const baseApex = Math.max(0.35, 0.40 - (levelDiff * 0.02) - (progress * 0.02));
-    const targetApex = this.scale.height * (isPerfect ? baseApex + 0.04 : baseApex);
+    const baseApex = Math.max(0.20, 0.40 - hits * 0.003); 
+    const targetApex = this.scale.height * (isPerfect ? baseApex + 0.03 : baseApex);
     const bounceY = -Math.sqrt(2 * totalG * targetApex);
     ball.setVelocityY(bounceY);
 
-    // Dirección horizontal: El verdadero desafío. Angulos cada vez más abiertos y rápidos.
-    const chaosMultiplier = (1 + progress * 1.5) * (1 + levelDiff * 0.8); // Multiplicador gigante en niveles altos
-    const chaos = this.world.lateralChaos * chaosMultiplier;
+    // Dirección horizontal (Caos lateral): incrementa progresivamente
+    const chaos = 120 + hits * 10;
     
     let horiz;
     if (isPerfect) {
-      // Incluso los "Perfect" en niveles altos te hacen moverte un poco
-      const basePerfect = Phaser.Math.Between(60, 150);
-      horiz = -Math.sign(dx || 1) * (basePerfect + (levelDiff * 50));
+      // Incluso en perfect, el balón se desvía más rápido a medida que avanza el juego
+      const basePerfect = Phaser.Math.Between(80, 160) + hits * 4;
+      horiz = -Math.sign(dx || 1) * basePerfect;
     } else {
-      // Si fallas el perfect, el desvío es EXTREMO hacia los lados
-      const lateralPush = dx * 4; 
+      // Si falla el perfect, el rebote lateral es cada vez más violento
+      const lateralPush = dx * (4 + hits * 0.15); 
       horiz = Phaser.Math.Clamp(lateralPush, -chaos, chaos) + Phaser.Math.Between(-100, 100);
-      // Forzar que el error se pague con un sprint
-      if (Math.abs(horiz) < 200 * (levelDiff + 1)) {
-          horiz = Math.sign(horiz || 1) * (200 + Phaser.Math.Between(50, 150) * levelDiff);
+      
+      const minForce = 220 + hits * 8;
+      if (Math.abs(horiz) < minForce) {
+          horiz = Math.sign(horiz || 1) * (minForce + Phaser.Math.Between(30, 80));
       }
     }
     ball.setVelocityX(horiz);
 
-    // Rotación más agresiva con el nivel y CADA dominada
+    // Rotación de la bola: más rápida con los toques
     const spinDirection = dx > 0 ? 1 : -1;
-    ball.setAngularVelocity(isPerfect ? spinDirection * (800 + levelDiff * 100 + progress * 200) : spinDirection * (400 + levelDiff * 50 + progress * 100));
+    ball.setAngularVelocity(isPerfect ? spinDirection * (800 + hits * 15) : spinDirection * (400 + hits * 10));
 
     if (isPerfect) {
       this.cameras.main.shake(110, 0.011);
@@ -618,11 +623,6 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.updateHud();
-
-    // ¡21 toques! → cambio de sede INSTANTÁNEO
-    if (this.style21 >= TOUCHES_PER_LEVEL) {
-      this.levelUp();
-    }
   }
 
   // Animación clara de "subir el pie y patear": estirón + inclinación hacia el balón
@@ -731,16 +731,16 @@ export default class GameScene extends Phaser.Scene {
   }
 
   updateHud() {
-    if (!this.onHud || !this.world) return;
+    if (!this.onHud) return;
     this.onHud({
       score: this.score,
-      ciudad: this.world.ciudad,
-      estadio: this.world.estadio,
-      bandera: this.world.bandera,
-      worldNumber: this.worldIndex + 1,
-      totalWorlds: WORLDS.length,
-      touches: this.style21,
-      goal: TOUCHES_PER_LEVEL,
+      ciudad: 'MUNDIAL 2026',
+      estadio: 'Modo Infinito',
+      bandera: '⚽',
+      worldNumber: 1,
+      totalWorlds: 1,
+      touches: this.score,
+      goal: Math.max(10, this.personalRecord || 0),
       combo: this.perfectCombo,
     });
   }
