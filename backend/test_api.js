@@ -203,4 +203,51 @@ async function runTests() {
   if (res.status !== 200) throw new Error('Obtención de ranking falló');
   console.log('✅ Ranking Top 5 obtenido:', data);
   console.log(`- Primer Puesto: ${data[0].buid_oculto} con ${data[0].puntos_totales} PTS`);
+
+  // ----------------------------------------
+  // TEST 9: Reclamación de Premios
+  // ----------------------------------------
+  console.log('\n9. Probando reclamación de premios...');
+  
+  // Obtener dashboard del usuario para tener la versión actual
+  res = await fetch(`${API_URL}/usuarios/BUID8888/dashboard`);
+  const currentDash = await res.json();
+  
+  // 9.1. Consultar dashboard y verificar premio_reclamado: false
+  if (currentDash.premio_reclamado !== false) {
+    throw new Error(`Se esperaba premio_reclamado: false por defecto, se obtuvo: ${currentDash.premio_reclamado}`);
+  }
+  
+  // Buscar id del usuario a través de la búsqueda de QR
+  res = await fetch(`${API_URL}/usuarios/qr/${testUserQrToken}`);
+  const userQrData = await res.json();
+  const userId = userQrData.id;
+  
+  // 9.2. Actualizar premio_reclamado: true (Staff)
+  res = await fetch(`${API_URL}/usuarios/${userId}/premio`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${staffToken}`
+    },
+    body: JSON.stringify({ premio_reclamado: true })
+  });
+  
+  if (res.status !== 200) {
+    throw new Error(`Se esperaba status 200 en actualización de premio, se obtuvo: ${res.status}`);
+  }
+  
+  const updatePrizeData = await res.json();
+  console.log('✅ Premio marcado como entregado:', updatePrizeData);
+  if (updatePrizeData.usuario.premio_reclamado !== true) {
+    throw new Error(`Se esperaba premio_reclamado: true después del update, se obtuvo: ${updatePrizeData.usuario.premio_reclamado}`);
+  }
+  
+  // 9.3. Verificar en el dashboard del usuario que premio_reclamado es true
+  res = await fetch(`${API_URL}/usuarios/BUID8888/dashboard`);
+  const finalDashboard = await res.json();
+  if (finalDashboard.premio_reclamado !== true) {
+    throw new Error(`Se esperaba premio_reclamado: true en el dashboard final, se obtuvo: ${finalDashboard.premio_reclamado}`);
+  }
+  console.log('✅ Dashboard refleja premio_reclamado: true');
 }

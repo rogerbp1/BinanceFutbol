@@ -182,7 +182,7 @@ app.get('/api/usuarios/qr/:token', async (req, res) => {
 
   try {
     const userRes = await pool.query(
-      'SELECT id, buid, puntos_totales, puntos_cabeceos FROM usuarios WHERE qr_token = $1',
+      'SELECT id, buid, puntos_totales, puntos_cabeceos, premio_reclamado FROM usuarios WHERE qr_token = $1',
       [token]
     );
     if (userRes.rows.length === 0) {
@@ -201,7 +201,7 @@ app.get('/api/usuarios/:buid/dashboard', async (req, res) => {
 
   try {
     const userRes = await pool.query(
-      'SELECT id, buid, puntos_totales, puntos_cabeceos, intentos_cabeceos, qr_token FROM usuarios WHERE buid = $1',
+      'SELECT id, buid, puntos_totales, puntos_cabeceos, intentos_cabeceos, qr_token, premio_reclamado FROM usuarios WHERE buid = $1',
       [buid]
     );
     if (userRes.rows.length === 0) {
@@ -273,11 +273,41 @@ app.get('/api/usuarios/:buid/dashboard', async (req, res) => {
       puntos_cabeceos: usuario.puntos_cabeceos,
       intentos_cabeceos: usuario.intentos_cabeceos,
       qr_token: usuario.qr_token,
+      premio_reclamado: usuario.premio_reclamado,
       actividades: actividadesMapeadas
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error al consultar el dashboard del usuario.' });
+  }
+});
+
+// Actualizar estado de entrega de premio (Staff / Admin)
+app.patch('/api/usuarios/:id/premio', authenticateRole(['staff', 'admin']), async (req, res) => {
+  const { id } = req.params;
+  const { premio_reclamado } = req.body;
+
+  if (premio_reclamado === undefined) {
+    return res.status(400).json({ error: 'El campo premio_reclamado es requerido.' });
+  }
+
+  try {
+    const updateRes = await pool.query(
+      'UPDATE usuarios SET premio_reclamado = $1 WHERE id = $2 RETURNING id, buid, puntos_totales, puntos_cabeceos, premio_reclamado',
+      [!!premio_reclamado, id]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    return res.json({
+      message: 'Estado del premio actualizado exitosamente.',
+      usuario: updateRes.rows[0]
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Error al actualizar el estado del premio.' });
   }
 });
 

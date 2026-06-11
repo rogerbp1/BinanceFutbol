@@ -18,6 +18,25 @@ const ACTIVITY_LINKS = {
   'Ingresar a canal de WhatsApp': 'https://whatsapp.com/channel/0029Vb787VhKwqSYDwddza2u'
 };
 
+const PRIZES = [
+  { points: 1100, name: '🎁 Hoodie' },
+  { points: 900, name: '🎁 Camiseta' },
+  { points: 700, name: '🎁 Gorra' },
+  { points: 550, name: '🎁 Medias' },
+  { points: 450, name: '🎁 Botella' },
+  { points: 350, name: '🎁 Mug' },
+  { points: 250, name: '🎁 Libreta' }
+];
+
+const getEligiblePrize = (points) => {
+  for (const prize of PRIZES) {
+    if (points >= prize.points) {
+      return prize.name;
+    }
+  }
+  return null;
+};
+
 // Componente del Juego Phaser
 function PhaserGame({ playerName, personalRecord, onHud, onGameOver }) {
   const gameRef = useRef(null);
@@ -732,21 +751,51 @@ function DashboardView({ navigate }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Columna Izquierda: QR */}
-        <div className="bg-[#181A20]/80 backdrop-blur-md border border-gray-800/80 rounded-2xl p-5 flex flex-col items-center shadow-xl text-center">
-          <h3 className="font-black italic text-binance-yellow tracking-tight mb-1 uppercase text-sm flex items-center gap-1.5">
-            <QrCode size={16} /> QR DE TRIBUNA
-          </h3>
-          <p className="text-gray-400 text-[10px] mb-5 max-w-[220px] leading-relaxed">Presenta este código en las estaciones presenciales para registrar tus puntos inmediatamente.</p>
-          
-          <div className="bg-white p-3 rounded-xl shadow-lg border border-binance-yellow/60 w-full max-w-[200px] aspect-square flex items-center justify-center">
-            {qrUrl ? (
-              <img src={qrUrl} alt="QR Pase" className="w-full h-full object-contain" />
-            ) : (
-              <div className="text-black text-xs font-bold">Cargando...</div>
-            )}
+        {/* Columna Izquierda: QR y Premio */}
+        <div className="space-y-6">
+          <div className="bg-[#181A20]/80 backdrop-blur-md border border-gray-800/80 rounded-2xl p-5 flex flex-col items-center shadow-xl text-center">
+            <h3 className="font-black italic text-binance-yellow tracking-tight mb-1 uppercase text-sm flex items-center gap-1.5">
+              <QrCode size={16} /> QR DE TRIBUNA
+            </h3>
+            <p className="text-gray-400 text-[10px] mb-5 max-w-[220px] leading-relaxed">Presenta este código en las estaciones presenciales para registrar tus puntos inmediatamente.</p>
+            
+            <div className="bg-white p-3 rounded-xl shadow-lg border border-binance-yellow/60 w-full max-w-[200px] aspect-square flex items-center justify-center">
+              {qrUrl ? (
+                <img src={qrUrl} alt="QR Pase" className="w-full h-full object-contain" />
+              ) : (
+                <div className="text-black text-xs font-bold">Cargando...</div>
+              )}
+            </div>
+            <span className="text-gray-500 font-mono text-[8px] mt-4 select-all break-all border border-gray-855 bg-[#0B0E11] px-2 py-1 rounded w-full max-w-[200px]">{usuario.qr_token}</span>
           </div>
-          <span className="text-gray-500 font-mono text-[8px] mt-4 select-all break-all border border-gray-850 bg-[#0B0E11] px-2 py-1 rounded w-full max-w-[200px]">{usuario.qr_token}</span>
+
+          <div className="bg-[#181A20]/80 backdrop-blur-md border border-gray-800/80 rounded-2xl p-5 flex flex-col items-center shadow-xl text-center">
+            <h3 className="font-black italic text-binance-yellow tracking-tight mb-1 uppercase text-sm flex items-center gap-1.5">
+              <Trophy size={16} /> MI PREMIO
+            </h3>
+            <p className="text-gray-400 text-[10px] mb-4 max-w-[220px] leading-relaxed">
+              Acumula puntos para reclamar premios físicos en las tribunas del Staff.
+            </p>
+
+            <div className="w-full bg-[#0B0E11]/60 border border-gray-855 rounded-xl p-3.5 space-y-2 text-left">
+              <div>
+                <span className="block text-[8px] font-bold text-gray-500 uppercase">Premio Reclamable</span>
+                <span className="text-sm font-black text-white mt-0.5 block font-mono">
+                  {getEligiblePrize(usuario.puntos_totales) || '❌ Ninguno (Mínimo 250 pts)'}
+                </span>
+              </div>
+              <div className="pt-2 border-t border-gray-855">
+                <span className="block text-[8px] font-bold text-gray-500 uppercase">Estado</span>
+                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded inline-block mt-1 font-mono ${
+                  usuario.premio_reclamado 
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                    : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                }`}>
+                  {usuario.premio_reclamado ? '🎁 ENTREGADO' : '⏳ PENDIENTE POR RECLAMAR'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Columna Derecha: Desafío de juego y retos */}
@@ -1304,6 +1353,33 @@ function StaffView() {
     setScannedUser(null);
   };
 
+  const handleTogglePremio = async () => {
+    setActionError('');
+    setActionSuccess('');
+    try {
+      const res = await fetch(`${VITE_API_URL}/api/usuarios/${scannedUser.id}/premio`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          premio_reclamado: !scannedUser.premio_reclamado
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al actualizar el estado del premio.');
+      
+      setScannedUser(prev => ({
+        ...prev,
+        premio_reclamado: data.usuario.premio_reclamado
+      }));
+      setActionSuccess(`¡Premio ${data.usuario.premio_reclamado ? 'marcado como entregado' : 'desmarcado'} para el BUID ${scannedUser.buid}!`);
+    } catch (err) {
+      setActionError(err.message);
+    }
+  };
+
   // Login View
   if (!token) {
     return (
@@ -1492,6 +1568,42 @@ function StaffView() {
               <span className="text-[9px] font-bold text-gray-500 uppercase">Puntos Actuales</span>
               <div className="text-lg font-bold font-mono text-white">{scannedUser.puntos_totales} PTS</div>
             </div>
+          </div>
+
+          {/* SECCIÓN DE PREMIO */}
+          <div className="bg-[#0B0E11]/80 border border-gray-855 rounded-xl p-3.5 space-y-3">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-wider">Premio Elegible</span>
+                <span className="text-sm font-black text-binance-yellow mt-0.5 block font-mono">
+                  {getEligiblePrize(scannedUser.puntos_totales) || '❌ Ninguno (Mínimo 250 pts)'}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-wider">Estado de Entrega</span>
+                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded inline-block mt-1 font-mono tracking-wide ${
+                  scannedUser.premio_reclamado 
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                    : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                }`}>
+                  {scannedUser.premio_reclamado ? '🎁 RECLAMADO' : '⏳ PENDIENTE'}
+                </span>
+              </div>
+            </div>
+
+            {getEligiblePrize(scannedUser.puntos_totales) && (
+              <button
+                type="button"
+                onClick={handleTogglePremio}
+                className={`w-full py-2.5 rounded-xl font-black italic text-xs transition-all flex items-center justify-center gap-1.5 uppercase ${
+                  scannedUser.premio_reclamado
+                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20'
+                    : 'bg-binance-yellow hover:bg-binance-lightYellow text-black'
+                }`}
+              >
+                {scannedUser.premio_reclamado ? 'Revertir Entrega de Premio' : 'Marcar Premio como Entregado'}
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">

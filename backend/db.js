@@ -87,7 +87,8 @@ const db = {
         qr_token,
         fecha_registro: new Date(),
         puntos_totales: 0,
-        puntos_cabeceos: 0
+        puntos_cabeceos: 0,
+        premio_reclamado: false
       };
       mockDb.usuarios.push(newUser);
       return { rows: [newUser] };
@@ -169,8 +170,16 @@ const db = {
 
     // 10. Actualizar usuarios (puntos_totales o puntos_cabeceos)
     if (sql.startsWith('UPDATE usuarios')) {
+      const isPrizeUpdate = sql.includes('premio_reclamado = $1');
       const isGameScore = sql.includes('puntos_cabeceos = $1');
-      if (isGameScore) {
+      if (isPrizeUpdate) {
+        const [premio_reclamado, id] = params;
+        const user = mockDb.usuarios.find(u => u.id == id);
+        if (user) {
+          user.premio_reclamado = !!premio_reclamado;
+          return { rows: [user] };
+        }
+      } else if (isGameScore) {
         const [score, id] = params;
         const user = mockDb.usuarios.find(u => u.id == id);
         if (user) {

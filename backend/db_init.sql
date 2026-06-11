@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   fecha_registro TIMESTAMP DEFAULT NOW(),
   puntos_totales INTEGER DEFAULT 0,    -- se recalcula cada vez que se aprueba una participación
   puntos_cabeceos INTEGER DEFAULT 0,   -- puntaje del juego, usado para desempate
-  intentos_cabeceos INTEGER DEFAULT 0  -- número de intentos del juego (máximo 3)
+  intentos_cabeceos INTEGER DEFAULT 0,  -- número de intentos del juego (máximo 3)
+  premio_reclamado BOOLEAN DEFAULT FALSE
 );
 
 -- Tabla actividades
