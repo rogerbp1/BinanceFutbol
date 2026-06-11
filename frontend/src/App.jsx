@@ -675,7 +675,7 @@ function DashboardView({ navigate }) {
     <div className="max-w-4xl mx-auto w-full px-2 py-4 space-y-6 flex-1 flex flex-col justify-center">
       {/* Header Pase de Tribuna */}
       <div className="bg-[#181A20]/80 backdrop-blur-md border border-gray-800/80 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,_rgba(240,185,11,0.06)_0%,_transparent_75%)]" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,_rgba(240,185,11,0.06)_0%,_transparent_75%)] pointer-events-none" />
         
         <div className="text-center md:text-left">
           <span className="bg-[#2B2F36] text-binance-yellow text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">PASE OFICIAL DE ACCESO</span>
@@ -717,7 +717,7 @@ function DashboardView({ navigate }) {
         <div className="lg:col-span-2 space-y-6">
           {/* Lanzador de Juego */}
           <div className="bg-gradient-to-br from-[#181A20]/90 to-[#2B2F36]/90 border border-binance-yellow/20 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-full bg-[radial-gradient(circle_at_right,_rgba(240,185,11,0.06)_0%,_transparent_75%)]" />
+            <div className="absolute top-0 right-0 w-32 h-full bg-[radial-gradient(circle_at_right,_rgba(240,185,11,0.06)_0%,_transparent_75%)] pointer-events-none" />
             
             <div className="space-y-1.5 text-center sm:text-left">
               <span className="bg-binance-yellow text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider shadow-md">RETO INDIVIDUAL</span>
@@ -745,7 +745,7 @@ function DashboardView({ navigate }) {
             ) : (
               <button
                 onClick={handleStartGame}
-                className="w-full sm:w-auto bg-binance-yellow hover:bg-binance-lightYellow text-black font-black italic text-base px-6 py-3.5 rounded-xl shadow-lg hover:shadow-binance-yellow/15 transition-all shrink-0 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto bg-binance-yellow hover:bg-binance-lightYellow text-black font-black italic text-base px-6 py-3.5 rounded-xl shadow-lg hover:shadow-binance-yellow/15 transition-all shrink-0 hover:scale-105 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 ¡JUGAR YA! <Award size={18} />
               </button>
