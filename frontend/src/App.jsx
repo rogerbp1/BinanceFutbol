@@ -381,6 +381,7 @@ function DashboardView({ navigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [qrUrl, setQrUrl] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   
   // Estado del juego Phaser
   const [gameState, setGameState] = useState('menu');
@@ -412,6 +413,19 @@ function DashboardView({ navigate }) {
     };
   }, [gameState]);
 
+  // Auto-refrescar dashboard cada 15 segundos si el usuario está en el menú
+  useEffect(() => {
+    if (gameState !== 'menu') return;
+
+    const interval = setInterval(() => {
+      if (!uploadingId) {
+        fetchDashboard();
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [gameState, uploadingId]);
+
   const fetchDashboard = async () => {
     const buid = localStorage.getItem('buid');
     if (!buid) {
@@ -419,6 +433,7 @@ function DashboardView({ navigate }) {
       return;
     }
 
+    setRefreshing(true);
     try {
       const response = await fetch(`${VITE_API_URL}/api/usuarios/${buid}/dashboard`);
       const data = await response.json();
@@ -447,6 +462,7 @@ function DashboardView({ navigate }) {
       setError('Error de comunicación con el estadio.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -679,7 +695,17 @@ function DashboardView({ navigate }) {
         
         <div className="text-center md:text-left">
           <span className="bg-[#2B2F36] text-binance-yellow text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">PASE OFICIAL DE ACCESO</span>
-          <h1 className="text-2xl sm:text-3xl font-black italic text-white mt-1">BUID: <span className="text-binance-yellow font-mono">{usuario.buid}</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-black italic text-white mt-1 flex items-center justify-center md:justify-start gap-2.5">
+            <span>BUID: <span className="text-binance-yellow font-mono">{usuario.buid}</span></span>
+            <button
+              onClick={fetchDashboard}
+              disabled={refreshing}
+              className="p-1.5 rounded-lg bg-gray-800/60 hover:bg-gray-800 text-gray-400 hover:text-binance-yellow transition-all border border-gray-750 hover:border-binance-yellow/20 flex items-center justify-center shrink-0"
+              title="Refrescar Puntos"
+            >
+              <RefreshCw size={12} className={refreshing ? 'animate-spin text-binance-yellow' : ''} />
+            </button>
+          </h1>
           <p className="text-gray-400 text-xs mt-1.5">Acumula puntos completando los retos físicos y digitales del festival.</p>
         </div>
 
