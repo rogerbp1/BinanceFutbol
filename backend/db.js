@@ -13,7 +13,7 @@ let useMock = false;
 const mockDb = {
   usuarios: [],
   actividades: [
-    { id: 1, nombre: 'Seguir canales (WP, TG, IG)', puntos: 150, tipo: 'captura', activa: true },
+    { id: 1, nombre: 'Ingresar a canal de WhatsApp', puntos: 150, tipo: 'captura', activa: true },
     { id: 2, nombre: 'Encuesta de satisfacción', puntos: 100, tipo: 'captura', activa: true },
     { id: 3, nombre: 'Mercado de predicciones', puntos: 200, tipo: 'captura', activa: true },
     { id: 4, nombre: 'Rayar camiseta Binance', puntos: 150, tipo: 'presencial', activa: true },

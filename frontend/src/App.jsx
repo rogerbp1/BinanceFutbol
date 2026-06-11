@@ -14,7 +14,8 @@ const VITE_API_URL = import.meta.env.VITE_API_URL || '';
 
 const ACTIVITY_LINKS = {
   'Mercado de predicciones': 'https://www.binance.com/es-LA/activity/pick-and-win/2026-football-challenge?ref=FOOTBALL26',
-  'Encuesta de satisfacción': 'https://www.binance.com/en/qr/dplk8c929f85f7624f888ff0079e2a0fa40f'
+  'Encuesta de satisfacción': 'https://www.binance.com/en/qr/dplk8c929f85f7624f888ff0079e2a0fa40f',
+  'Ingresar a canal de WhatsApp': 'https://whatsapp.com/channel/0029Vb787VhKwqSYDwddza2u'
 };
 
 // Componente del Juego Phaser
@@ -1105,6 +1106,29 @@ function StaffView() {
   const [retryTrigger, setRetryTrigger] = useState(0);
   const scannerRef = useRef(null);
 
+  // Estados para el QR de Login/Registro
+  const [loginQrUrl, setLoginQrUrl] = useState('');
+  const [showLoginQrModal, setShowLoginQrModal] = useState(false);
+
+  useEffect(() => {
+    const generateLoginQr = async () => {
+      try {
+        const url = await QRCode.toDataURL('https://binancefutbol-production.up.railway.app/', {
+          color: {
+            dark: '#0B0E11',
+            light: '#FFFFFF'
+          },
+          margin: 1,
+          width: 250
+        });
+        setLoginQrUrl(url);
+      } catch (err) {
+        console.error('Error generating login QR:', err);
+      }
+    };
+    generateLoginQr();
+  }, []);
+
   const handleRetryCamera = () => {
     setCameraPermission('prompt');
     setRetryTrigger(prev => prev + 1);
@@ -1424,6 +1448,38 @@ function StaffView() {
               <button type="submit" className="bg-binance-yellow text-black font-black text-xs px-4 rounded-xl">BUSCAR</button>
             </form>
           </div>
+
+          {/* Tarjeta de QR de Registro para usuarios */}
+          <div className="bg-[#181A20]/80 backdrop-blur-md border border-binance-yellow/20 rounded-2xl p-5 shadow-lg text-center flex flex-col items-center relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-binance-yellow via-yellow-500 to-binance-yellow" />
+            <h4 className="font-black italic text-binance-yellow tracking-tight mb-1 uppercase text-xs flex items-center gap-1.5 justify-center">
+              <QrCode size={16} /> REGISTRO / ACCESO DE USUARIOS
+            </h4>
+            <p className="text-gray-400 text-[10px] mb-4 max-w-[240px] leading-relaxed mx-auto">
+              Muestra este código para que los usuarios escaneen y se registren o inicien sesión con su BUID.
+            </p>
+            
+            <div 
+              onClick={() => setShowLoginQrModal(true)}
+              className="bg-white p-2.5 rounded-xl shadow-lg border border-binance-yellow/40 w-full max-w-[140px] aspect-square flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300 relative group"
+            >
+              {loginQrUrl ? (
+                <img src={loginQrUrl} alt="QR Registro" className="w-full h-full object-contain" />
+              ) : (
+                <RefreshCw className="animate-spin text-black" size={24} />
+              )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                <span className="text-[10px] text-binance-yellow font-black uppercase tracking-wider">Ampliar</span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setShowLoginQrModal(true)}
+              className="mt-3.5 bg-binance-yellow/10 hover:bg-binance-yellow border border-binance-yellow/30 hover:text-black text-binance-yellow font-black text-[10px] px-4 py-2 rounded-lg transition-all uppercase tracking-wider"
+            >
+              Ampliar QR Pantalla Completa
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-[#181A20]/90 backdrop-blur-md border border-binance-yellow/20 rounded-2xl p-5 shadow-xl space-y-5 animate-fade-in">
@@ -1504,6 +1560,34 @@ function StaffView() {
           >
             VOLVER AL ESCÁNER / CANCELAR
           </button>
+        </div>
+      )}
+
+      {/* Modal QR Registro Ampliado */}
+      {showLoginQrModal && (
+        <div 
+          className="fixed inset-0 bg-black/95 flex flex-col items-center justify-center p-4 cursor-pointer animate-fade-in"
+          style={{ zIndex: 100 }}
+          onClick={() => setShowLoginQrModal(false)}
+        >
+          <button className="absolute top-4 right-4 text-white hover:text-binance-yellow"><X size={28} /></button>
+          <div 
+            className="bg-white p-6 rounded-3xl shadow-2xl border-4 border-binance-yellow max-w-[320px] w-full aspect-square flex items-center justify-center transform scale-100 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {loginQrUrl ? (
+              <img src={loginQrUrl} alt="QR Registro Ampliado" className="w-full h-full object-contain" />
+            ) : (
+              <RefreshCw className="animate-spin text-black" size={40} />
+            )}
+          </div>
+          <span className="text-binance-yellow text-[12px] font-black mt-4 uppercase tracking-widest text-center max-w-[280px]">
+            ¡ESCANEAME PARA ENTRAR AL ESTADIO!
+          </span>
+          <span className="text-white/60 text-[10px] font-medium mt-1 select-all font-mono">
+            https://binancefutbol-production.up.railway.app/
+          </span>
+          <span className="text-gray-500 text-[9px] font-black mt-6 uppercase tracking-widest">Toca la pantalla para cerrar</span>
         </div>
       )}
     </div>

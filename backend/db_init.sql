@@ -39,7 +39,7 @@ UPDATE actividades SET nombre = 'Futbolin' WHERE nombre = 'Futbolito en equipos'
 
 -- Seed inicial de actividades
 INSERT INTO actividades (nombre, puntos, tipo) VALUES
-('Seguir canales (WP, TG, IG)', 150, 'captura'),
+('Ingresar a canal de WhatsApp', 150, 'captura'),
 ('Encuesta de satisfacción', 100, 'captura'),
 ('Mercado de predicciones', 200, 'captura'),
 ('Rayar camiseta Binance', 150, 'presencial'),
