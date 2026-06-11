@@ -20,7 +20,7 @@ const mockDb = {
     { id: 5, nombre: 'Juego de penales', puntos: 250, tipo: 'presencial', activa: true },
     { id: 6, nombre: 'Futbolin', puntos: 300, tipo: 'presencial', activa: true },
     { id: 7, nombre: 'Juego de cabeceos', puntos: null, tipo: 'juego', activa: true },
-    { id: 8, nombre: 'Adivina el jugador', puntos: 300, tipo: 'presencial', activa: true }
+    { id: 8, nombre: 'Adivina el jugador', puntos: 200, tipo: 'captura', activa: true }
   ],
   participaciones: [],
   userIdCounter: 1,

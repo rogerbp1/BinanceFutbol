@@ -45,7 +45,7 @@ INSERT INTO actividades (nombre, puntos, tipo) VALUES
 ('Rayar camiseta Binance', 150, 'presencial'),
 ('Juego de penales', 250, 'presencial'),
 ('Futbolin', 300, 'presencial'),
-('Adivina el jugador', 300, 'presencial'),
+('Adivina el jugador', 200, 'captura'),
 ('Juego de cabeceos', NULL, 'juego')
 ON CONFLICT (nombre) DO NOTHING;
 
