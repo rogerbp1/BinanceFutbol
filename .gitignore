@@ -15,3 +15,9 @@ backend/uploads/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Python virtual environments
+venv/
+.venv/
+**/venv/
+**/.venv/
