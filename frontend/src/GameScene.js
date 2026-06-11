@@ -135,13 +135,14 @@ export default class GameScene extends Phaser.Scene {
 
     this.ball = this.physics.add.sprite(width / 2, 50, 'ball_texture');
     this.ball.setCircle(28, 2, 2);
-    this.ball.setBounce(1, 1); // Rebote 100% elástico (ideal contra las paredes)
+    this.ball.setBounce(0.92, 0.92); // Rebote ligeramente inelástico para evitar loops perfectos
     this.ball.setCollideWorldBounds(true);
     this.ball.setAngularDrag(150);
 
     this.physics.add.collider(this.ball, this.ground, this.handleDrop, null, this);
     // El toque balón-jugador se detecta manualmente en update() (línea de golpeo)
     this.prevBallY = this.ball.y;
+    this._prevBallX = this.ball.x; // Para detectar rebotes laterales de pared
 
     // Construir la primera sede (con entrada animada) y arrancar el nivel
     this.buildWorld(true);
@@ -487,6 +488,28 @@ export default class GameScene extends Phaser.Scene {
         this.catchBall(dx);
       }
       this.prevBallY = this.ball.y;
+
+      // ── PERTURBACIÓN EN REBOTES DE PARED ──────────────────────────────
+      // Detecta cuando el balón acaba de rebotar en una pared lateral
+      // (cambió de signo en velocityX) e inyecta ruido en velocityY
+      // para romper cualquier ciclo de esquina perfecto.
+      const bvx = this.ball.body.velocity.x;
+      const bvy = this.ball.body.velocity.y;
+      const hitLeftWall  = this._prevBallX > 5  && this.ball.x <= 5;
+      const hitRightWall = this._prevBallX < (width - 5) && this.ball.x >= (width - 5);
+      if (hitLeftWall || hitRightWall) {
+        // Añadir entre ±15% y ±40% de ruido vertical al rebotar en pared
+        const noiseFactor = Phaser.Math.FloatBetween(0.15, 0.40);
+        const noiseSign   = Phaser.Math.Between(0, 1) === 0 ? -1 : 1;
+        const noiseVY = Math.abs(bvy) * noiseFactor * noiseSign;
+        this.ball.setVelocityY(bvy + noiseVY);
+        // También asegurar velocidad horizontal mínima post-rebote
+        const minWallHoriz = 80 + this.totalHits * 4;
+        if (Math.abs(bvx) < minWallHoriz) {
+          this.ball.setVelocityX(Math.sign(bvx || 1) * minWallHoriz);
+        }
+      }
+      this._prevBallX = this.ball.x;
     }
 
     // Sombra PERFECT (silueta hacia el lado que camina)
@@ -592,22 +615,38 @@ export default class GameScene extends Phaser.Scene {
 
     // Dirección horizontal (Caos lateral): incrementa más agresivamente
     const chaos = 160 + hits * 18;
-    
+
+    // Si el jugador está quieto (dx ≈ 0), forzar desvío lateral aleatorio
+    // para evitar que el balón rebote perfectamente vertical de forma indefinida
+    const effectiveDx = (Math.abs(dx) < 18)
+      ? (Phaser.Math.Between(0, 1) === 0 ? -1 : 1) * Phaser.Math.Between(25, 55)
+      : dx;
+
     let horiz;
     if (isPerfect) {
       // Incluso en perfect, el balón se desvía lateralmente más rápido
       const basePerfect = Phaser.Math.Between(90, 180) + hits * 6;
-      horiz = -Math.sign(dx || 1) * basePerfect;
+      // Añadir ruido extra para que ningún toque sea idéntico
+      const noise = Phaser.Math.Between(-40, 40);
+      horiz = -Math.sign(effectiveDx) * basePerfect + noise;
     } else {
       // Si falla el perfect, el desvío lateral es extremo
-      const lateralPush = dx * (5.5 + hits * 0.30); 
+      const lateralPush = effectiveDx * (5.5 + hits * 0.30);
       horiz = Phaser.Math.Clamp(lateralPush, -chaos, chaos) + Phaser.Math.Between(-100, 100);
-      
+
       const minForce = 260 + hits * 15;
       if (Math.abs(horiz) < minForce) {
-          horiz = Math.sign(horiz || 1) * (minForce + Phaser.Math.Between(30, 80));
+        horiz = Math.sign(horiz || 1) * (minForce + Phaser.Math.Between(30, 80));
       }
     }
+
+    // Garantía absoluta: velocidad horizontal mínima siempre
+    // (evita que el balón suba perfectamente vertical en cualquier caso)
+    const absMinHoriz = 70 + hits * 5;
+    if (Math.abs(horiz) < absMinHoriz) {
+      horiz = Math.sign(horiz || (Phaser.Math.Between(0,1) ? 1 : -1)) * absMinHoriz;
+    }
+
     ball.setVelocityX(horiz);
 
     // Rotación de la bola: más rápida con los toques
