@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Brillo exterior -->
+  <circle cx="50" cy="50" r="48" fill="#F0B90B" stroke="#F8D33A" stroke-width="4"/>
+  <!-- Pentágonos oscuros -->
+  <path d="M50 20 L65 30 L65 50 L50 60 L35 50 L35 30 Z" fill="#0B0E11"/>
+  <path d="M50 20 L40 5 L60 5 Z" fill="#0B0E11"/>
+  <path d="M65 30 L85 25 L80 45 Z" fill="#0B0E11"/>
+  <path d="M65 50 L80 70 L60 75 Z" fill="#0B0E11"/>
+  <path d="M35 50 L20 70 L40 75 Z" fill="#0B0E11"/>
+  <path d="M35 30 L15 25 L20 45 Z" fill="#0B0E11"/>
+  <!-- Líneas conectoras amarillas claras para destacar -->
+  <path d="M40 5 L50 20 L60 5" stroke="#0B0E11" stroke-width="3" fill="none"/>
+  <path d="M85 25 L65 30 L80 45" stroke="#0B0E11" stroke-width="3" fill="none"/>
+  <path d="M80 70 L65 50 L60 75" stroke="#0B0E11" stroke-width="3" fill="none"/>
+  <path d="M20 70 L35 50 L40 75" stroke="#0B0E11" stroke-width="3" fill="none"/>
+  <path d="M15 25 L35 30 L20 45" stroke="#0B0E11" stroke-width="3" fill="none"/>
+</svg>

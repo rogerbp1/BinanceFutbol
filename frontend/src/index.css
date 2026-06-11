@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-binance-italic {
+    font-style: italic;
+    transform: skewX(-5deg); /* To emphasize the dynamic feel from the toolkit */
+  }
+}
+
+body {
+  font-family: "Gotham HTF", "Montserrat", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Custom scrollbar to match the dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0E11;
+}
+::-webkit-scrollbar-thumb {
+  background: #2B2F36;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F0B90B;
+}
+
+/* ==========================================================================
+   REALISTIC STADIUM BACKGROUND ANIMATIONS
+   ========================================================================== */
+
+/* Ken Burns Effect (Lento movimiento y zoom) */
+@keyframes stadium-pan {
+  0% {
+    transform: scale(1.05) translate(0px, 0px);
+  }
+  50% {
+    transform: scale(1.1) translate(-10px, 5px);
+  }
+  100% {
+    transform: scale(1.05) translate(0px, 0px);
+  }
+}
+.animate-stadium-pan {
+  animation: stadium-pan 30s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+/* Flashes de cámara en el público */
+@keyframes camera-flash {
+  0%, 95%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  97% {
+    opacity: 1;
+    transform: scale(1.5);
+    box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.8);
+  }
+}
+.animate-camera-flash {
+  animation: camera-flash linear infinite;
+}
+
+/* Confeti cayendo (Amarillo y Negro) */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg) translateX(50px);
+    opacity: 0;
+  }
+}
+.animate-confetti-fall {
+  animation: confetti-fall linear infinite;
+}
+
+/* Ocultar elementos de fondo durante el juego para evitar parpadeos y liberar GPU */
+body.game-playing header,
+body.game-playing .stadium-bg {
+  display: none !important;
+}

@@ -1,0 +1,17 @@
+# Node.js dependencies
+node_modules/
+
+# Local env files (Contienen credenciales privadas de base de datos y Supabase)
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+
+# Build artifacts
+frontend/dist/
+backend/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
