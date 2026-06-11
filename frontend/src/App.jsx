@@ -641,18 +641,29 @@ function DashboardView({ navigate }) {
             </div>
 
             <div className="w-full max-w-xs space-y-3">
-              <button
-                className="w-full bg-binance-yellow text-black font-black italic text-lg py-4 rounded-xl hover:bg-binance-lightYellow transition-all transform hover:scale-[1.02]"
-                onClick={handleStartGame}
-              >
-                INTENTAR DE NUEVO
-              </button>
-              <button
-                className="w-full bg-transparent border border-gray-700 text-gray-300 font-bold text-xs py-3 rounded-xl hover:bg-gray-800 transition-all"
-                onClick={() => { setGameOver(null); setHud(null); setGameState('menu'); fetchDashboard(); }}
-              >
-                VOLVER A MI PASE DE TRIBUNA
-              </button>
+              {(usuario.intentos_cabeceos || 0) >= 3 ? (
+                <button
+                  className="w-full bg-binance-yellow text-black font-black italic text-lg py-4 rounded-xl hover:bg-binance-lightYellow transition-all transform hover:scale-[1.02]"
+                  onClick={() => { setGameOver(null); setHud(null); setGameState('menu'); fetchDashboard(); }}
+                >
+                  VOLVER A MI PASE DE TRIBUNA
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="w-full bg-binance-yellow text-black font-black italic text-lg py-4 rounded-xl hover:bg-binance-lightYellow transition-all transform hover:scale-[1.02]"
+                    onClick={handleStartGame}
+                  >
+                    INTENTAR DE NUEVO
+                  </button>
+                  <button
+                    className="w-full bg-transparent border border-gray-700 text-gray-300 font-bold text-xs py-3 rounded-xl hover:bg-gray-800 transition-all"
+                    onClick={() => { setGameOver(null); setHud(null); setGameState('menu'); fetchDashboard(); }}
+                  >
+                    VOLVER A MI PASE DE TRIBUNA
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
