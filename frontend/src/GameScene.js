@@ -552,8 +552,8 @@ export default class GameScene extends Phaser.Scene {
     const hits = this.totalHits;
     
     // El margen de error para el PERFECT se achica progresivamente toque a toque
-    // Comienza en 30px y baja 0.5px por toque, hasta un mínimo de 6px (súper preciso)
-    const currentPerfectWindow = Math.max(6, 30 - hits * 0.5);
+    // Comienza en 24px (más difícil) y baja 0.8px por toque, hasta un mínimo de 5px (ultra-preciso)
+    const currentPerfectWindow = Math.max(5, 24 - hits * 0.8);
     const isPerfect = Math.abs(ball.x - footX) < currentPerfectWindow;
     const hitX = ball.x;
     const hitY = ball.y;
@@ -579,31 +579,31 @@ export default class GameScene extends Phaser.Scene {
     this.score += (isPerfect ? 2 : 1) * multiplier;
 
     // Gravedad progresiva: aumenta linealmente con cada toque
-    // Comienza en 820 y sube 40 por cada toque (p. ej., toque 30 = 2020 de gravedad)
-    const gravity = 820 + hits * 40;
+    // Comienza en 900 (más rápido) y sube 60 por cada toque (p. ej., toque 20 = 2100 de gravedad)
+    const gravity = 900 + hits * 60;
     ball.setGravityY(gravity);
 
-    // Altura del rebote: disminuye levemente para forzar caídas más rápidas
+    // Altura del rebote: disminuye más rápido para forzar caídas muy veloces
     const totalG = this.physics.world.gravity.y + gravity;
-    const baseApex = Math.max(0.20, 0.40 - hits * 0.003); 
+    const baseApex = Math.max(0.18, 0.38 - hits * 0.005); 
     const targetApex = this.scale.height * (isPerfect ? baseApex + 0.03 : baseApex);
     const bounceY = -Math.sqrt(2 * totalG * targetApex);
     ball.setVelocityY(bounceY);
 
-    // Dirección horizontal (Caos lateral): incrementa progresivamente
-    const chaos = 120 + hits * 10;
+    // Dirección horizontal (Caos lateral): incrementa más agresivamente
+    const chaos = 160 + hits * 18;
     
     let horiz;
     if (isPerfect) {
-      // Incluso en perfect, el balón se desvía más rápido a medida que avanza el juego
-      const basePerfect = Phaser.Math.Between(80, 160) + hits * 4;
+      // Incluso en perfect, el balón se desvía lateralmente más rápido
+      const basePerfect = Phaser.Math.Between(90, 180) + hits * 6;
       horiz = -Math.sign(dx || 1) * basePerfect;
     } else {
-      // Si falla el perfect, el rebote lateral es cada vez más violento
-      const lateralPush = dx * (4 + hits * 0.15); 
+      // Si falla el perfect, el desvío lateral es extremo
+      const lateralPush = dx * (5.5 + hits * 0.30); 
       horiz = Phaser.Math.Clamp(lateralPush, -chaos, chaos) + Phaser.Math.Between(-100, 100);
       
-      const minForce = 220 + hits * 8;
+      const minForce = 260 + hits * 15;
       if (Math.abs(horiz) < minForce) {
           horiz = Math.sign(horiz || 1) * (minForce + Phaser.Math.Between(30, 80));
       }
