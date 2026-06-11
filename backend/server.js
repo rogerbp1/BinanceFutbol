@@ -622,13 +622,13 @@ app.post('/api/juego/score', async (req, res) => {
       const updateRes = await pool.query(
         `UPDATE usuarios
          SET 
-           puntos_cabeceos = $1,
+           puntos_cabeceos = $1::integer,
            intentos_cabeceos = intentos_cabeceos + 1,
            puntos_totales = (
-             SELECT COALESCE(SUM(puntos_otorgados), 0)
+             SELECT COALESCE(SUM(puntos_otorgados), 0)::integer
              FROM participaciones
              WHERE usuario_id = usuarios.id AND estado = 'aprobado'
-           ) + $1
+           ) + $1::integer
          WHERE id = $2
          RETURNING puntos_totales, puntos_cabeceos, intentos_cabeceos`,
         [parsedScore, usuario.id]

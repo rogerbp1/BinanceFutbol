@@ -497,7 +497,8 @@ function DashboardView({ navigate }) {
         setUsuario(prev => ({
           ...prev,
           puntos_totales: data.puntos_totales,
-          puntos_cabeceos: data.puntos_cabeceos
+          puntos_cabeceos: data.puntos_cabeceos,
+          intentos_cabeceos: data.intentos_cabeceos
         }));
       }
     } catch (err) {
