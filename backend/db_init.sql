@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS participaciones (
   admin_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL  -- NULL si es presencial
 );
 
+-- Migración: Agregar columna premio_reclamado si no existe (compatible con bases de datos existentes)
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS premio_reclamado BOOLEAN DEFAULT FALSE;
+
 -- Migración de nombres existentes
 UPDATE actividades SET nombre = 'Futbolin' WHERE nombre = 'Futbolito en equipos';
 

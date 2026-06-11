@@ -85,6 +85,23 @@ function authenticateRole(allowedRoles) {
   };
 }
 
+// Auto-migración al iniciar: añadir campo premio_reclamado si no existe en la BD de producción
+async function runMigrations() {
+  try {
+    await pool.query(`
+      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS premio_reclamado BOOLEAN DEFAULT FALSE
+    `);
+    console.log('✅ Migración ejecutada: campo premio_reclamado verificado/agregado.');
+  } catch (err) {
+    console.error('⚠️ Error al ejecutar migración de premio_reclamado:', err.message);
+  }
+}
+
+// Ejecutar migraciones solo si hay conexión a PostgreSQL real
+if (pool) {
+  runMigrations();
+}
+
 // Obtener o crear ID de usuario del sistema (Staff / Admin) para cumplir la llave foránea
 async function getOrCreateSystemUser(buid) {
   const selectRes = await pool.query('SELECT id FROM usuarios WHERE buid = $1', [buid]);
