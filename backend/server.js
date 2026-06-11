@@ -201,7 +201,7 @@ app.get('/api/usuarios/:buid/dashboard', async (req, res) => {
 
   try {
     const userRes = await pool.query(
-      'SELECT id, buid, puntos_totales, puntos_cabeceos, qr_token FROM usuarios WHERE buid = $1',
+      'SELECT id, buid, puntos_totales, puntos_cabeceos, intentos_cabeceos, qr_token FROM usuarios WHERE buid = $1',
       [buid]
     );
     if (userRes.rows.length === 0) {
@@ -271,6 +271,7 @@ app.get('/api/usuarios/:buid/dashboard', async (req, res) => {
       buid: usuario.buid,
       puntos_totales: usuario.puntos_totales,
       puntos_cabeceos: usuario.puntos_cabeceos,
+      intentos_cabeceos: usuario.intentos_cabeceos,
       qr_token: usuario.qr_token,
       actividades: actividadesMapeadas
     });
@@ -605,43 +606,56 @@ app.post('/api/juego/score', async (req, res) => {
 
   try {
     // Buscar ID del usuario
-    const userRes = await pool.query('SELECT id, puntos_cabeceos FROM usuarios WHERE qr_token = $1', [qr_token]);
+    const userRes = await pool.query('SELECT id, puntos_cabeceos, intentos_cabeceos FROM usuarios WHERE qr_token = $1', [qr_token]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
     const usuario = userRes.rows[0];
 
+    // Validar si ya alcanzó el límite de 3 intentos
+    if (usuario.intentos_cabeceos >= 3) {
+      return res.status(400).json({ error: 'Ya has alcanzado el límite máximo de 3 intentos para este juego.' });
+    }
+
     // Verificar si el score recibido es más alto que el registrado (guardar el score más alto, no acumular)
     if (parsedScore > usuario.puntos_cabeceos) {
-      // Registrar participación del juego si no existe (opcional, para auditar, o simplemente actualizar la tabla usuarios)
-      // La tabla usuarios tiene 'puntos_cabeceos'. Actualizaremos este campo y recalcularemos 'puntos_totales'
       const updateRes = await pool.query(
         `UPDATE usuarios
          SET 
            puntos_cabeceos = $1,
+           intentos_cabeceos = intentos_cabeceos + 1,
            puntos_totales = (
              SELECT COALESCE(SUM(puntos_otorgados), 0)
              FROM participaciones
              WHERE usuario_id = usuarios.id AND estado = 'aprobado'
            ) + $1
          WHERE id = $2
-         RETURNING puntos_totales, puntos_cabeceos`,
+         RETURNING puntos_totales, puntos_cabeceos, intentos_cabeceos`,
         [parsedScore, usuario.id]
       );
       
       return res.json({
         updated: true,
         puntos_totales: updateRes.rows[0].puntos_totales,
-        puntos_cabeceos: updateRes.rows[0].puntos_cabeceos
+        puntos_cabeceos: updateRes.rows[0].puntos_cabeceos,
+        intentos_cabeceos: updateRes.rows[0].intentos_cabeceos
       });
     }
 
-    // Si el score no fue superado, simplemente retornar el actual
-    const currentTotalRes = await pool.query('SELECT puntos_totales, puntos_cabeceos FROM usuarios WHERE id = $1', [usuario.id]);
+    // Si el score no fue superado, solo incrementamos el número de intentos
+    const updateRes = await pool.query(
+      `UPDATE usuarios
+       SET intentos_cabeceos = intentos_cabeceos + 1
+       WHERE id = $1
+       RETURNING puntos_totales, puntos_cabeceos, intentos_cabeceos`,
+      [usuario.id]
+    );
+
     return res.json({
       updated: false,
-      puntos_totales: currentTotalRes.rows[0].puntos_totales,
-      puntos_cabeceos: currentTotalRes.rows[0].puntos_cabeceos
+      puntos_totales: updateRes.rows[0].puntos_totales,
+      puntos_cabeceos: updateRes.rows[0].puntos_cabeceos,
+      intentos_cabeceos: updateRes.rows[0].intentos_cabeceos
     });
   } catch (err) {
     console.error(err);

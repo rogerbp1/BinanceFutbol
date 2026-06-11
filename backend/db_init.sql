@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   qr_token VARCHAR UNIQUE NOT NULL,    -- token firmado generado al registrarse
   fecha_registro TIMESTAMP DEFAULT NOW(),
   puntos_totales INTEGER DEFAULT 0,    -- se recalcula cada vez que se aprueba una participación
-  puntos_cabeceos INTEGER DEFAULT 0    -- puntaje del juego, usado para desempate
+  puntos_cabeceos INTEGER DEFAULT 0,   -- puntaje del juego, usado para desempate
+  intentos_cabeceos INTEGER DEFAULT 0  -- número de intentos del juego (máximo 3)
 );
 
 -- Tabla actividades

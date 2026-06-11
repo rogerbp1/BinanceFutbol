@@ -713,14 +713,31 @@ function DashboardView({ navigate }) {
                 <Play size={18} className="fill-current text-binance-yellow" /> DESAFÍO DE CABECEOS
               </h3>
               <p className="text-gray-300 text-xs max-w-sm leading-relaxed">Pateala con estilo, supera los 21 toques para saltar de estadio y registra tu mayor récord en la tabla.</p>
+              <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Intentos Realizados:</span>
+                <span className={`text-xs font-black px-2.5 py-0.5 rounded-md ${
+                  (usuario.intentos_cabeceos || 0) >= 3 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-binance-yellow/10 text-binance-yellow border border-binance-yellow/20'
+                }`}>
+                  {usuario.intentos_cabeceos || 0} / 3
+                </span>
+              </div>
             </div>
 
-            <button
-              onClick={handleStartGame}
-              className="w-full sm:w-auto bg-binance-yellow hover:bg-binance-lightYellow text-black font-black italic text-base px-6 py-3.5 rounded-xl shadow-lg hover:shadow-binance-yellow/15 transition-all shrink-0 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-            >
-              ¡JUGAR YA! <Award size={18} />
-            </button>
+            {(usuario.intentos_cabeceos || 0) >= 3 ? (
+              <button
+                disabled
+                className="w-full sm:w-auto bg-gray-800 text-gray-500 cursor-not-allowed font-black italic text-base px-6 py-3.5 rounded-xl border border-gray-750 shrink-0 flex items-center justify-center gap-2"
+              >
+                SIN INTENTOS <X size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={handleStartGame}
+                className="w-full sm:w-auto bg-binance-yellow hover:bg-binance-lightYellow text-black font-black italic text-base px-6 py-3.5 rounded-xl shadow-lg hover:shadow-binance-yellow/15 transition-all shrink-0 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                ¡JUGAR YA! <Award size={18} />
+              </button>
+            )}
           </div>
 
           {/* Listado de Actividades */}
