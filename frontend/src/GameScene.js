@@ -80,11 +80,11 @@ export default class GameScene extends Phaser.Scene {
     this.rightGlow = this.add.rectangle(width, 0, width / 3, height, 0xFFFF00, 0.15).setOrigin(1, 0).setAlpha(0).setDepth(20);
 
     // Geometría del CUERPO del personaje (cualquier contacto hace rebotar el balón)
-    this.playerScale = 0.62;                // personaje más grande para que el pie alcance el balón
-    this.bodyHalf = 82;                     // medio ancho del cuerpo (rebote)
-    this.bodyTopOffset = -95;               // cabeza (relativo a player.y)
-    this.bodyBottomOffset = 120;            // piernas/pie (relativo a player.y)
-    this.footOffset = 75;                   // PERFECT hacia el lado que camina
+    this.playerScale = 0.43;                // personaje -30% para mayor dificultad
+    this.bodyHalf = 57;                     // medio ancho del cuerpo (rebote) -30%
+    this.bodyTopOffset = -67;               // cabeza (relativo a player.y) -30%
+    this.bodyBottomOffset = 84;             // piernas/pie (relativo a player.y) -30%
+    this.footOffset = 53;                   // PERFECT hacia el lado que camina -30%
     this.fieldH = 130;                      // alto de la franja de césped
     this.prevBallY = 0;
 
